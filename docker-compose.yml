@@ -1,0 +1,109 @@
+services:
+  celerytest:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+      target: devcontainer
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/celery
+      CELERY_BROKER: redis://redis:6379/0
+      CELERY_BACKENDS: redis://redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/opt/project
+    restart: unless-stopped
+
+  celery_worker:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+      target: devcontainer
+    command: poetry run celery
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/celery
+      CELERY_BROKER: redis://redis:6379/0
+      CELERY_BACKENDS: redis://redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/opt/project
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    command: redis-server --tcp-keepalive 60 --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: celery
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d celery"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      TZ: Europe/Budapest
+    ports:
+      - "5550:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    configs:
+      - source: servers.json
+        target: /pgadmin4/servers.json
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+configs:
+  servers.json:
+    content: |
+      {
+        "Servers": {
+          "1": {
+            "Name": "Celery database",
+            "Group": "Servers",
+            "Host": "db",
+            "Port": 5432,
+            "MaintenanceDB": "celery",
+            "Username": "postgres",
+            "Password": "postgres",
+            "SSLMode": "prefer"
+          }
+        }
+      }
+
+volumes:
+  redis_data:
+  postgres_data:
+  pgadmin_data:

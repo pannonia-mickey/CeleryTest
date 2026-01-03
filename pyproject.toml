@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "celerytest"
+version = "0.1.0"
+description = ""
+authors = ["Miklos Imre <mimre@brighthills.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+celery = "^5.5.2"
+redis = "^6.1.0"
+celery-sqlalchemy = "^0.1.6"
+psycopg2-binary = "^2.9.10"
+flower = "^2.0.1"
+dotenv = "^0.9.9"
+debugpy = "^1.8.14"
+sqlalchemy = "^2.0.41"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+start = "celerytest.start:run_app"
+celery = "celerytest.start:run_celery_worker"
+
+[custom]
+build-number = "0"
+commit-hash = ""

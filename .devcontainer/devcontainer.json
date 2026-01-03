@@ -1,0 +1,24 @@
+{
+    "dockerComposeFile": "../docker-compose.yml",
+    "service": "backend",
+    // Configure tool-specific properties.
+    "customizations": {
+        // Configure properties specific to VS Code.
+        "vscode": {
+            // Set *default* container specific settings.json values on container create.
+            "settings": {
+                "python.pythonPath": "/usr/bin/python3",
+                "terminal.integrated.shell.linux": "/bin/bash"
+            },
+            // Add the IDs of extensions you want installed when the container is created.
+            "extensions": [
+                "ms-python.python",
+                "ms-python.debugpy",
+                "tamasfe.even-better-toml",
+                "samuelcolvin.jinjahtml"
+            ]
+        }
+    },
+    "workspaceFolder": "/opt/project",
+    "remoteUser": "root"
+}
